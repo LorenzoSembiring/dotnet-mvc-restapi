@@ -6,8 +6,21 @@ using WebApplication1.Interfaces;
 using WebApplication1.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
-// Add services to the container.
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.AllowAnyOrigin()
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
+});
+
+// Add services to the container
 builder.Services.AddControllersWithViews();
 var connectionString = builder.Configuration.GetConnectionString("DataContext");
 builder.Services.AddDbContext<DataContext>(options =>
@@ -17,13 +30,13 @@ RegisteredServices(builder.Services, Assembly.GetExecutingAssembly());
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -32,10 +45,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Apply the CORS policy
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();
 
